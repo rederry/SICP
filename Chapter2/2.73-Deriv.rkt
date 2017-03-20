@@ -78,3 +78,61 @@
 ;;(display (deriv '(* x y (+ x 3)) 'x))
 
 ;; 数据导向风格
+(define (deriv exp var)
+  (cond ((number? exp) 0)
+        ((variable? exp) (if (same-variable? exp var) 1 0))
+        (else ((get 'deriv (operator exp)) (operands exp)
+                                           var))))
+
+(define (operator exp) (car exp))
+(define (operands exp) (cdr exp))
+(define (attach-tag s x) (list s x))
+(define (get x y) 1)
+(define (put x y) 1)
+
+;b
+(define (install-sum-package)
+  (define (deriv exp var)
+    (make-sum (deriv (addend exp) var)
+              (deriv (augend exp) var)))
+  (put 'deriv '(+) deriv)
+  'done)
+
+(define (install-product-package)
+  (define (deriv exp var)
+    (make-sum
+     (make-product (multiplier exp)
+                   (deriv (multiplicand exp) var))
+     (make-product (deriv (multiplier exp) var)
+                   (multiplicand exp))))
+  (put 'deriv '(*) deriv)
+  'done)
+
+;c
+(define (install-exponentiation-package)
+  (define (deriv exp var)
+    (let ((base (base exp))
+          (exponent (exponent exp)))
+      (make-product (deriv base var)
+                    (make-product exponent
+                                  (make-exponentiation base
+                                                       (+ exponent -1))))))
+  (put 'deriv '(**) deriv)
+  'done)
+
+;d
+(define (install-deriv-package)
+  (define (sum exp var)
+    (make-sum (deriv (addend exp) var)
+              (deriv (augend exp) var)))
+  (define (product exp var)
+    (make-sum
+     (make-product (multiplier exp)
+                   (deriv (multiplicand exp) var))
+     (make-product (deriv (multiplier exp) var)
+                   (multiplicand exp))))
+  (put '+ '(deriv) sum)
+  (put '* '(deriv) product)
+  'done)
+
+;(#%require "2.1-MakeRat.rkt")
