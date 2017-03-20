@@ -1,0 +1,28 @@
+(define (square x)
+  (* x x))
+
+(define (smallest-divisor n)
+  (divisor n 2))
+(define (divisor n test-divisor)
+  (cond ((> (square test-divisor) n) n)
+        ((divides? n test-divisor) test-divisor)
+        (else (divisor n (+ test-divisor 1)))))
+(define (divides? a b)
+  (=(remainder a b) 0))
+
+(define (prime? n)
+  (= (smallest-divisor n) n))
+
+(define (time-prime-test n)
+  (newline)
+  (display n)
+  (start-prime-test n (runtime)))
+(define (start-prime-test n start-time)
+  (if (prime? n)
+      (report-time (- (runtime) start-time))
+      (display "not found")))
+(define (report-time elapsed-time)
+  (display "***")
+  (display elapsed-time))
+
+(time-prime-test 19999)
